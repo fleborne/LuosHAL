@@ -487,6 +487,16 @@ static void LuosHAL_CRCInit(void)
 
 }
 /******************************************************************************
+ * @brief Reset CRC
+ * @param pointer to crc value to reset
+ * @return None
+ ******************************************************************************/
+void LuosHAL_ResetCRC(uint8_t *crc)
+{
+    uint16_t crc_init = 0xFFFF;
+    memcpy(crc,&crc_init,2);
+}
+/******************************************************************************
  * @brief Compute CRC
  * @param None
  * @return None
