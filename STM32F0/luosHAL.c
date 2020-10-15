@@ -59,6 +59,17 @@ void LuosHAL_Init(void)
 
     //Timeout Initialization
     LuosHAL_TimeoutInit();
+
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    /*Configure GPIO pins : RxEN_Pin */
+    GPIO_InitStruct.Pin = GPIO_PIN_14;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);
 }
 /******************************************************************************
  * @brief Luos HAL general disable IRQ
@@ -484,19 +495,7 @@ uint8_t LuosHAL_GetPTPState(branch_t branch)
  ******************************************************************************/
 static void LuosHAL_CRCInit(void)
 {
-    __HAL_RCC_CRC_CLK_ENABLE();
-    hcrc.Instance = CRC;
-    hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_DISABLE;
-    hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
-    hcrc.Init.GeneratingPolynomial = 7;
-    hcrc.Init.CRCLength = CRC_POLYLENGTH_16B;
-    hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
-    hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
-    hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
-    if (HAL_CRC_Init(&hcrc) != HAL_OK)
-    {
-        while (1);
-    }
+
 }
 /******************************************************************************
  * @brief Compute CRC
@@ -505,14 +504,26 @@ static void LuosHAL_CRCInit(void)
  ******************************************************************************/
 void LuosHAL_ComputeCRC(uint8_t *data, uint16_t size, uint8_t *crc)
 {
-    uint16_t calc;
-    if (size > 1)
+    uint16_t calc = 0;
+    memcpy(&calc,crc,2);
+    if (size == 0)
     {
-        calc = (unsigned short)HAL_CRC_Calculate(&hcrc, (uint32_t *)data, size);
+        calc = 0;
     }
     else
     {
-        calc = (unsigned short)HAL_CRC_Accumulate(&hcrc, (uint32_t *)data, 1);
+        for (uint16_t i = 0; i < size; ++i)
+        {
+            uint16_t dbyte = data[i];
+            calc ^= dbyte << 8;
+            for (uint8_t j = 0; j < 8; ++j)
+            {
+                uint16_t mix = calc & 0x8000;
+                calc = (calc << 1);
+                if (mix)
+                    calc = calc ^ 0x0007;
+            }
+        }
     }
     crc[0] = (unsigned char)calc;
     crc[1] = (unsigned char)(calc >> 8);
@@ -590,5 +601,7 @@ void PINOUT_IRQHANDLER(uint16_t GPIO_Pin)
 }
 void LUOS_COM_IRQHANDLER()
 {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);
     LuosHAL_ComReceive();
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);
 }

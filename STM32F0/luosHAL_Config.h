@@ -16,6 +16,16 @@
 /*******************************************************************************
  * PINOUT CONFIG
  ******************************************************************************/
+// list of all branches of your configuration.
+typedef enum
+{
+    BRANCH_A,
+    BRANCH_B,
+//    BRANCH_C,
+//    BRANCH_D,
+    NO_BRANCH // you have to keep this one at the last position
+} branch_t;
+
 #ifndef PORT_CLOCK_ENABLE
 #define PORT_CLOCK_ENABLE()         do { \
                                     __HAL_RCC_GPIOA_CLK_ENABLE();\

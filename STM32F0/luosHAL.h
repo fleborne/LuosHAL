@@ -20,14 +20,6 @@
 #define ADDRESS_ALIASES_FLASH       ADDRESS_LAST_PAGE_FLASH
 #define ADDRESS_BOOT_FLAG_FLASH     (ADDRESS_LAST_PAGE_FLASH + PAGE_SIZE) - 4
 
-// list of all branches of your configuration.
-typedef enum
-{
-    BRANCH_A,
-    BRANCH_B,
-    NO_BRANCH // you have to keep this one at the last position
-} branch_t;
-
 /*******************************************************************************
  * Variables
  ******************************************************************************/
